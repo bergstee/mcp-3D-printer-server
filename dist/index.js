@@ -41,7 +41,9 @@ class ThreeDPrinterMCPServer {
             }
         });
         this.printerFactory = new PrinterFactory();
+        console.error("[DEBUG] PrinterFactory Created:", this.printerFactory);
         this.stlManipulator = new STLManipulator(TEMP_DIR);
+        console.error("[DEBUG] STLManipulator Created:", this.printerFactory);
         this.setupHandlers();
         this.setupErrorHandling();
     }
