@@ -30,6 +30,7 @@ if (!fs.existsSync(TEMP_DIR)) {
 }
 class ThreeDPrinterMCPServer {
     constructor() {
+        console.error("[DEBUG] constructor");
         this.server = new Server({
             name: "mcp-3d-printer-server",
             version: "1.0.0"
@@ -470,6 +471,7 @@ class ThreeDPrinterMCPServer {
         });
         // Handle tool calls
         this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+            console.error("[DEBUG] Handling CallToolRequestSchema:", JSON.stringify(request, null, 2));
             const { name, arguments: args } = request.params;
             // Set default values for common parameters
             const host = String(args?.host || DEFAULT_HOST);
@@ -729,12 +731,25 @@ class ThreeDPrinterMCPServer {
     }
     // Delegating methods to printer implementations
     async getPrinterStatus(host, port = DEFAULT_PORT, type = DEFAULT_TYPE, apiKey = DEFAULT_API_KEY, bambuSerial = DEFAULT_BAMBU_SERIAL, bambuToken = DEFAULT_BAMBU_TOKEN) {
+        console.log(`[DEBUG] Entering getPrinterStatus - host: ${host}, port: ${port}, type: ${type}, apiKey: ${apiKey ? '***' : 'N/A'}, bambuSerial: ${bambuSerial || 'N/A'}, bambuToken: ${bambuToken ? '***' : 'N/A'}`);
+        console.log(`[DEBUG] Calling printerFactory.getImplementation with type: ${type}`);
         const implementation = this.printerFactory.getImplementation(type);
+        console.log(`[DEBUG] Got implementation: ${implementation ? implementation.constructor.name : 'undefined'}`);
+        if (!implementation) {
+            console.error("[DEBUG] Failed to get printer implementation!");
+            throw new Error(`Failed to get implementation for printer type: ${type}`);
+        }
         if (type.toLowerCase() === "bambu") {
             const bambuApiKey = `${bambuSerial}:${bambuToken}`;
-            return implementation.getStatus(host, port, bambuApiKey);
+            console.log(`[DEBUG] Calling Bambu implementation.getStatus with host: ${host}, port: ${port}, apiKey: ${bambuApiKey ? '***' : 'N/A'}`);
+            const status = await implementation.getStatus(host, port, bambuApiKey);
+            console.log("[DEBUG] Bambu getStatus returned:", JSON.stringify(status, null, 2));
+            return status;
         }
-        return implementation.getStatus(host, port, apiKey);
+        console.log(`[DEBUG] Calling non-Bambu implementation.getStatus with host: ${host}, port: ${port}, apiKey: ${apiKey ? '***' : 'N/A'}`);
+        const status = await implementation.getStatus(host, port, apiKey);
+        console.log("[DEBUG] Non-Bambu getStatus returned:", JSON.stringify(status, null, 2));
+        return status;
     }
     async getPrinterFiles(host, port = DEFAULT_PORT, type = DEFAULT_TYPE, apiKey = DEFAULT_API_KEY, bambuSerial = DEFAULT_BAMBU_SERIAL, bambuToken = DEFAULT_BAMBU_TOKEN) {
         const implementation = this.printerFactory.getImplementation(type);

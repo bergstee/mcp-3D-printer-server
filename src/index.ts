@@ -48,6 +48,8 @@ class ThreeDPrinterMCPServer {
   private stlManipulator: STLManipulator;
 
   constructor() {
+
+    console.error("[DEBUG] constructor");
     this.server = new Server(
       {
         name: "mcp-3d-printer-server",
@@ -60,7 +62,7 @@ class ThreeDPrinterMCPServer {
         }
       }
     );
-
+  
     this.printerFactory = new PrinterFactory();
     this.stlManipulator = new STLManipulator(TEMP_DIR);
 
@@ -503,7 +505,7 @@ class ThreeDPrinterMCPServer {
 
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      console.log("[DEBUG] Handling CallToolRequestSchema:", JSON.stringify(request, null, 2));
+      console.error("[DEBUG] Handling CallToolRequestSchema:", JSON.stringify(request, null, 2));
       const { name, arguments: args } = request.params;
       
       // Set default values for common parameters

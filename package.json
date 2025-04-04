@@ -39,6 +39,7 @@
     "devDependencies": {
         "@types/node": "^18.0.0",
         "@types/three": "^0.173.0",
-        "nodemon": "^2.0.22"
+        "nodemon": "^2.0.22",
+        "typescript": "^5.8.2"
     }
 }
