@@ -19,15 +19,37 @@ export class BambuImplementation extends PrinterImplementation {
     const [serial, token] = this.extractBambuCredentials(apiKey);
     
     const printer = this.getBambuPrinter(host, serial, token);
-    
-    // Connect if not already connected
-    if (!printer.isConnected) {
-      await printer.connect();
-      // Wait for initial state
-      await printer.awaitInitialState(10000); // 10 second timeout
+    if (!printer) {
+      throw new Error(`Failed to get BambuPrinter instance for host: ${host}, serial: ${serial}. Check connection or credentials.`);
     }
     
-    return printer.getState();
+    
+    try {
+      // Connect if not already connected
+      if (!printer.isConnected) {
+        console.log(`[DEBUG Bambu] Printer ${host}-${serial} not connected. Attempting connection...`);
+        await printer.connect();
+        console.log(`[DEBUG Bambu] Connection attempt finished for ${host}-${serial}. Waiting for initial state...`);
+        // Wait for initial state
+        await printer.awaitInitialState(10000); // 10 second timeout
+        console.log(`[DEBUG Bambu] Initial state received for ${host}-${serial}.`);
+      } else {
+        console.log(`[DEBUG Bambu] Printer ${host}-${serial} already connected.`);
+      }
+      
+      console.log(`[DEBUG Bambu] Getting state for ${host}-${serial}...`);
+      const state = printer.getState();
+      console.log(`[DEBUG Bambu] State received for ${host}-${serial}.`);
+      return state;
+    } catch (error) {
+      console.error(`[Error Bambu] Error during connection or getting state for ${host}-${serial}:`, error);
+      // Disconnect to clean up potentially broken state
+      await printer.disconnect().catch(disconnectError => {
+        console.error(`[Error Bambu] Error during disconnect after failure for ${host}-${serial}:`, disconnectError);
+      });
+      // Re-throw a more specific error
+      throw new Error(`Failed to connect or get status from Bambu printer ${host}-${serial}. Error: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   
   async getFiles(host: string, port: string, apiKey: string) {

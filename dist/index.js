@@ -110,6 +110,7 @@ class ThreeDPrinterMCPServer {
             let content;
             try {
                 if (resource === "status") {
+                    console.error("[DEBUG] getPrinterStatus:", host);
                     content = await this.getPrinterStatus(host);
                 }
                 else if (resource === "files") {
